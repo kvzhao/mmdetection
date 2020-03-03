@@ -3,7 +3,6 @@
 date = '2020-03-03'
 task = 'retinanet_free_anchor_r50_fpn_1x'
 
-
 model = dict(
     type='RetinaNet',
     pretrained='torchvision://resnet50',
@@ -53,7 +52,7 @@ test_cfg = dict(
     max_per_img=100)
 # dataset settings
 dataset_type = 'CrowdhumanDataset'
-data_root = '/home/kv_zhao/datasets/CrowdHuman/'
+data_root = '/home/datasets/CrowdHuman/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 train_pipeline = [
