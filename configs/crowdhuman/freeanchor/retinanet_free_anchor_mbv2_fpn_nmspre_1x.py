@@ -1,24 +1,24 @@
 # model settings
 date = '2020-03-03'
-task = 'retinanet_free_anchor_r50_fpn_bn_1x'
+task = 'retinanet_free_anchor_mbv2_fpn_1x'
 
 model = dict(
     type='RetinaNet',
-    pretrained='torchvision://resnet50',
+    pretrained='/home/mmdetection/work_dirs/crowdhuman/2020-03-03/retinanet_mbv2_fpn_1x/latest.pth',
     backbone=dict(
-        type='ResNet',
-        depth=50,
-        num_stages=4,
-        out_indices=(0, 1, 2, 3),
-        frozen_stages=1,
-        style='pytorch'),
+        type='MobileNetV2',
+        out_indices=(1, 2, 4, 6),
+        frozen_stages=-1,
+        ),
     neck=dict(
         type='FPN',
-        in_channels=[256, 512, 1024, 2048],
+        in_channels=[24, 32, 96, 320],
         out_channels=256,
         start_level=1,
         add_extra_convs=True,
-        norm_cfg=dict(type='BN'),
+        extra_convs_on_inputs=False,  # use P5
+        relu_before_extra_convs=True,
+        #norm_cfg=dict(type='BN'),
         num_outs=5),
     bbox_head=dict(
         type='FreeAnchorRetinaHead',
@@ -32,7 +32,10 @@ model = dict(
         anchor_strides=[8, 16, 32, 64, 128],
         target_means=[.0, .0, .0, .0],
         target_stds=[0.1, 0.1, 0.2, 0.2],
-        loss_bbox=dict(type='SmoothL1Loss', beta=0.11, loss_weight=0.75)))
+        loss_bbox=dict(
+            type='SmoothL1Loss',
+            beta=0.11,
+            loss_weight=0.75)))
 # training and testing settings
 train_cfg = dict(
     assigner=dict(
@@ -55,11 +58,13 @@ test_cfg = dict(
 dataset_type = 'CrowdhumanDataset'
 data_root = '/home/datasets/CrowdHuman/'
 img_norm_cfg = dict(
-    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+    mean=[123.675, 116.28, 103.53],
+    std=[58.395, 57.12, 57.375],
+    to_rgb=True)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True),
-    dict(type='Resize', img_scale=(1333, 800), keep_ratio=True),
+    dict(type='Resize', img_scale=(640, 640), keep_ratio=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
@@ -70,7 +75,7 @@ test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(
         type='MultiScaleFlipAug',
-        img_scale=(1333, 800),
+        img_scale=(640, 640),
         flip=False,
         transforms=[
             dict(type='Resize', keep_ratio=True),
@@ -82,8 +87,8 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    imgs_per_gpu=4,
-    workers_per_gpu=2,
+    imgs_per_gpu=32,
+    workers_per_gpu=8,
     train=dict(
         type=dataset_type,
         ann_file=data_root + 'annotations/train.json',
@@ -108,7 +113,7 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[15, 19])
+    step=[15, 19, 35, 39])
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
@@ -119,7 +124,7 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 20
+total_epochs = 40
 device_ids = range(8)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
