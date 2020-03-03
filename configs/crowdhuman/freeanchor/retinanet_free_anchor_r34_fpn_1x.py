@@ -1,14 +1,14 @@
 # model settings
 
 date = '2020-03-03'
-task = 'retinanet_free_anchor_r18_fpn_1x'
+task = 'retinanet_free_anchor_r34_fpn_1x'
 
 model = dict(
     type='RetinaNet',
-    pretrained='torchvision://resnet18',
+    pretrained='torchvision://resnet34',
     backbone=dict(
         type='ResNet',
-        depth=18,
+        depth=34,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=1,
@@ -83,7 +83,7 @@ test_pipeline = [
 ]
 data = dict(
     imgs_per_gpu=32,
-    workers_per_gpu=8,
+    workers_per_gpu=16,
     train=dict(
         type=dataset_type,
         ann_file=data_root + 'annotations/train.json',
